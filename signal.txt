@@ -1,0 +1,28 @@
+//@version=5
+indicator("RSI Contextual Anomaly Detection", overlay=false)
+
+// ユーザーが設定できるパラメータ
+rsi_length = input.int(14, title="RSI Length")  // RSIの期間
+context_window = input.int(7, title="Context Window")  // 文脈ウィンドウの長さ
+anomaly_threshold = input.float(15.0, title="Anomaly Threshold")  // 異常検知の閾値
+
+// RSIの計算
+rsi = ta.rsi(close, rsi_length)
+
+// 文脈に基づくRSIの変動の計算
+rsi_diff = rsi - ta.sma(rsi, context_window)  // RSIとその過去の平均との変動
+rsi_diff_abs = math.abs(rsi_diff)  // 変動の絶対値
+
+// RSIの急激な変動を検知（閾値を超えた場合を異常とする）
+is_anomaly = rsi_diff_abs > anomaly_threshold and rsi >= 30 and rsi <= 70
+
+// RSIと異常をプロット
+plot(rsi, title="RSI", color=color.blue)
+hline(70, "Overbought", color=color.red)
+hline(30, "Oversold", color=color.green)
+
+// 異常箇所をプロット
+plotshape(series=is_anomaly, location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small, title="Anomaly")
+
+// 背景色を異常時に変更
+bgcolor(is_anomaly ? color.new(color.red, 90) : na)
