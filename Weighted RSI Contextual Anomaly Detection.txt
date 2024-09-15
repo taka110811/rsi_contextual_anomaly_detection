@@ -1,0 +1,37 @@
+//@version=5
+indicator("Weighted RSI Contextual Anomaly Detection", overlay=false)
+
+// パラメータの設定
+rsi_length = input.int(14, title="RSI Length")
+upper_bound = input.int(70, title="Upper Bound")  // 高すぎる領域の境界
+lower_bound = input.int(30, title="Lower Bound")  // 低すぎる領域の境界
+context_window = input.int(5, title="Context Window")  // 文脈ウィンドウの長さ
+anomaly_threshold = input.float(15.0, title="Anomaly Threshold")  // 異常検知の閾値
+
+// RSIの計算
+rsi = ta.rsi(close, rsi_length)
+
+// 重み付け関数の定義（50を中心にして重みを計算）
+weight = 1 + math.abs(rsi - 50) / 50  // RSIが50から離れるほど重みが増加
+
+// 重みを使用してRSIに基づく変動を調整
+adjusted_rsi = (rsi - 50) * weight + 50  // 重みを適用したRSI
+
+// 文脈に基づくRSIの変動の計算
+rsi_diff = adjusted_rsi - ta.sma(adjusted_rsi, context_window)  // 重み付けRSIとその過去の平均との変動
+rsi_diff_abs = math.abs(rsi_diff)  // 変動の絶対値
+
+// RSIの急激な変動を検知（閾値を超えた場合を異常とする）
+is_anomaly = rsi_diff_abs > anomaly_threshold and rsi >= lower_bound and rsi <= upper_bound
+
+// RSIと調整後のRSIをプロット
+plot(rsi, color=color.blue, title="Original RSI")
+plot(adjusted_rsi, color=color.red, title="Adjusted RSI with Weighting")
+hline(upper_bound, "Overbought", color=color.red)
+hline(lower_bound, "Oversold", color=color.green)
+
+// 異常箇所をプロット
+plotshape(series=is_anomaly, location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small, title="Anomaly")
+
+// 背景色を異常時に変更
+bgcolor(is_anomaly ? color.new(color.red, 90) : na)
