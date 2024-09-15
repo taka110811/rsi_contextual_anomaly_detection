@@ -1,0 +1,34 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © babysteps1108
+
+//@version=5
+indicator("RSI Contextual Anomaly Detection with Standard Deviation", overlay=false)
+
+// ユーザーが設定できるパラメータ
+rsi_length = input.int(14, title="RSI Length")  // RSIの期間
+context_window = input.int(7, title="Context Window")  // 文脈ウィンドウの長さ
+anomaly_threshold = input.float(2.0, title="Anomaly Threshold (in Std Dev)")  // 異常検知の閾値（標準偏差）
+
+// RSIの計算
+rsi = ta.rsi(close, rsi_length)
+
+// 文脈ウィンドウ内のRSIの平均と標準偏差の計算
+rsi_sma = ta.sma(rsi, context_window)  // 文脈ウィンドウ内のRSIの平均
+rsi_stddev = ta.stdev(rsi, context_window)  // 文脈ウィンドウ内のRSIの標準偏差
+
+// RSIの変動を標準偏差で正規化
+rsi_diff_std = (rsi - rsi_sma) / rsi_stddev  // RSIの変動を標準偏差で正規化したもの
+
+// 標準偏差で正規化された変動が閾値を超えるかを判定
+is_anomaly = math.abs(rsi_diff_std) > anomaly_threshold
+
+// RSIと異常をプロット
+plot(rsi, title="RSI", color=color.blue)
+hline(70, "Overbought", color=color.red)
+hline(30, "Oversold", color=color.green)
+
+// 異常箇所をプロット
+plotshape(series=is_anomaly, location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small, title="Anomaly")
+
+// 異常時に背景色を赤に変更
+bgcolor(is_anomaly ? color.new(color.red, 90) : na)
