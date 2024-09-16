@@ -1,5 +1,11 @@
 # rsi_contextual_anomaly_detection
+### このシグナルのスコープ
+・RSI中間付近で大きな動きがあった時
+・RSI70、30にいい感じに突き刺さる時
 
+### より精度を高めるためのフィルタリング
+
+### シグナルのロジック
 ```mermaid
 flowchart TD
     A[開始] --> B[RSIの期間と文脈ウィンドウ、閾値の入力]
