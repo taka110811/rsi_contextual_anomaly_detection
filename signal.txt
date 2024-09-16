@@ -1,5 +1,8 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © babysteps1108
+
 //@version=5
-indicator("RSI Contextual Anomaly Detection with RSI Diff Visualization", overlay=false)
+indicator("RSI Contextual Anomaly Detection with RSI Diff Visualization and Alerts", overlay=false)
 
 // ユーザーが設定できるパラメータ
 rsi_length = input.int(14, title="RSI Length")  // RSIの期間
@@ -20,6 +23,7 @@ is_anomaly = rsi_diff_abs > anomaly_threshold
 plot(rsi, title="RSI", color=color.blue)
 hline(70, "Overbought", color=color.red)
 hline(30, "Oversold", color=color.green)
+hline(15, "Oversold", color=color.aqua, linestyle=hline.style_dotted)
 
 // 異常箇所をプロット
 plotshape(series=is_anomaly, location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small, title="Anomaly")
@@ -29,3 +33,6 @@ plot(rsi_diff_abs, title="RSI Difference (Absolute)", color=color.purple, linewi
 
 // 背景色を異常時に変更
 bgcolor(is_anomaly ? color.new(color.red, 90) : na)
+
+// アラート設定（異常検知時にアラートを発生）
+alertcondition(is_anomaly, title="RSI Anomaly Alert", message="RSI Anomaly Detected!")
